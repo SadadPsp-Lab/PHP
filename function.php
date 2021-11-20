@@ -1,21 +1,30 @@
 <?php
-//Create sign data(Tripledes(ECB,PKCS7))
+
 function encrypt_pkcs7($str, $key)
 {
     $key = base64_decode($key);
-    $ciphertext = OpenSSL_encrypt($str,"DES-EDE3", $key, OPENSSL_RAW_DATA);
+    $ciphertext = OpenSSL_encrypt($str, "DES-EDE3", $key, OPENSSL_RAW_DATA);
     return base64_encode($ciphertext);
 }
-//Send Data
+
 function CallAPI($url, $data = false)
 {
-    $curl = curl_init($url);
-    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");  
-    curl_setopt($curl, CURLOPT_POSTFIELDS,$data);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/json','Content-Length: ' . strlen($data)));
-    $result = curl_exec($curl);
-    curl_close($curl);
-    return $result;
+    try {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json; charset=utf-8'));
+        curl_setopt($ch, CURLOPT_POST, 1);
+        if ($data)
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return !empty($result) ? json_decode($result) : false;
+    }
+    catch (Exception $ex) {
+        return false;
+    }
 }
+
 ?>
